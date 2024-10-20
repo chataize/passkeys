@@ -20,7 +20,10 @@
 
     public async Task CreatePasskeyAsync()
     {
-        await PasskeyProvider.CreatePasskeyAsync();
+        var result = await PasskeyProvider.CreatePasskeyAsync("user1");
+
+        _passkeyId = result.CredentialId;
+        _publicKey = result.PublicKey;
     }
 
     public async Task UsePasskeyAsync()
