@@ -83,12 +83,54 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
         var passkey = new Passkey
         {
             CredentialId = result.CredentialId,
+            Challenge = challenge,
             AuthenticatorData = result.AuthenticatorData,
             ClientDataJson = result.ClientDataJson,
             Signature = result.Signature
         };
 
         return passkey;
+    }
+
+    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, string publicKey)
+    {
+        var fido2Configuration = new Fido2Configuration
+        {
+            ServerDomain = options.Value.Domain,
+            ServerName = options.Value.AppName,
+            Origins = [.. options.Value.Origins]
+        };
+
+        var fido2 = new Fido2(fido2Configuration);
+
+        var credentialIdBytes = Convert.FromBase64String(passkey.CredentialId);
+        var authenticatorDataBytes = Convert.FromBase64String(passkey.AuthenticatorData!);
+        var clientDataJsonBytes = Convert.FromBase64String(passkey.ClientDataJson!);
+        var SignatureBytes = Convert.FromBase64String(passkey.Signature!);
+
+        var response = new AuthenticatorAssertionRawResponse
+        {
+            Id = credentialIdBytes,
+            RawId = credentialIdBytes,
+            Type = PublicKeyCredentialType.PublicKey,
+            Response = new AuthenticatorAssertionRawResponse.AssertionResponse
+            {
+                AuthenticatorData = authenticatorDataBytes,
+                ClientDataJson = clientDataJsonBytes,
+                Signature = SignatureBytes,
+            }
+        };
+
+        var assertionOptions = new AssertionOptions
+        {
+            Challenge = passkey.Challenge,
+            RpId = fido2Configuration.ServerDomain,
+        };
+
+        var decodedPublicKey = Convert.FromBase64String(publicKey);
+        var assertionResult = await fido2.MakeAssertionAsync(response, assertionOptions, decodedPublicKey, 0, (_, _) => Task.FromResult(true));
+
+        return assertionResult.Status == "ok";
     }
 
     public async ValueTask DisposeAsync()

@@ -8,6 +8,7 @@
         <div>Client Data JSON: @_passkey?.ClientDataJson</div>
         <div>Signature: @_passkey?.Signature</div>
         <div>Public Key: @_passkey?.PublicKey</div>
+        <div>Verified: @_isVerified</div>
     </DPParagraph>
     <DPButton Clicked="CreatePasskeyAsync">Create Passkey</DPButton>
     <DPButton Clicked="UsePasskeyAsync">Use Passkey</DPButton>
@@ -16,13 +17,19 @@
 @code {
     private Passkey? _passkey;
 
+    private string? _publicKey;
+
+    private bool _isVerified;
+
     public async Task CreatePasskeyAsync()
     {
-        _passkey = await PasskeyProvider.CreatePasskeyAsync("user1");
+        _passkey = await PasskeyProvider.CreatePasskeyAsync("user4");
+        _publicKey = _passkey!.PublicKey;
     }
 
     public async Task UsePasskeyAsync()
     {
         _passkey = await PasskeyProvider.GetPasskeyAsync();
+        _isVerified = await PasskeyProvider.VerifyPasskeyAsync(_passkey!, _publicKey!);
     }
 }
