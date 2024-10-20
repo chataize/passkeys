@@ -1,5 +1,4 @@
 export async function createPasskey(domain, appName, userId, userName, userDisplayName, challenge) {
-    const encoder = new TextEncoder();
     const publicKey = {
         challenge: challenge,
         rp: {
@@ -7,7 +6,7 @@ export async function createPasskey(domain, appName, userId, userName, userDispl
             id: domain
         },
         user: {
-            id: encoder.encode(userId),
+            id: new TextEncoder().encode(userId),
             name: userName,
             displayName: userDisplayName
         },
@@ -17,29 +16,22 @@ export async function createPasskey(domain, appName, userId, userName, userDispl
     };
 
     const credential = await navigator.credentials.create({ publicKey });
-    const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
-    const attestationBase64 = btoa(String.fromCharCode(...new Uint8Array(credential.response.attestationObject)));
-    const clientDataJSON = btoa(String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON)));
 
     return {
-        credentialId: credentialId,
-        attestation: attestationBase64,
-        clientDataJSON: clientDataJSON
+        credentialId: new Uint8Array(credential.rawId),
+        attestation: new Uint8Array(credential.response.attestationObject),
+        clientDataJSON: new Uint8Array(credential.response.clientDataJSON)
     };
 }
 
 export async function getPasskey(domain, challenge) {
     const publicKey = { challenge: challenge, rpId: domain };
     const credential = await navigator.credentials.get({ publicKey });
-    const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
-    const authenticatorData = btoa(String.fromCharCode(...new Uint8Array(credential.response.authenticatorData)));
-    const clientDataJSON = btoa(String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON)));
-    const signature = btoa(String.fromCharCode(...new Uint8Array(credential.response.signature)));
 
     return {
-        credentialId: credentialId,
-        authenticatorData: authenticatorData,
-        clientDataJSON: clientDataJSON,
-        signature: signature
+        credentialId: new Uint8Array(credential.rawId),
+        authenticatorData: new Uint8Array(credential.response.authenticatorData),
+        clientDataJSON: new Uint8Array(credential.response.clientDataJSON),
+        signature: new Uint8Array(credential.response.signature)
     };
 }

@@ -31,19 +31,15 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
 
             var fido2 = new Fido2(fido2Configuration);
 
-            var credentialIdBytes = Convert.FromBase64String(passkeyCreationResult.CredentialId);
-            var attestationBytes = Convert.FromBase64String(passkeyCreationResult.Attestation);
-            var clientDataJsonBytes = Convert.FromBase64String(passkeyCreationResult.ClientDataJson);
-
             var response = new AuthenticatorAttestationRawResponse
             {
-                Id = credentialIdBytes,
-                RawId = credentialIdBytes,
+                Id = passkeyCreationResult.CredentialId,
+                RawId = passkeyCreationResult.CredentialId,
                 Type = PublicKeyCredentialType.PublicKey,
                 Response = new AuthenticatorAttestationRawResponse.ResponseData
                 {
-                    AttestationObject = attestationBytes,
-                    ClientDataJson = clientDataJsonBytes,
+                    AttestationObject = passkeyCreationResult.Attestation,
+                    ClientDataJson = passkeyCreationResult.ClientDataJson,
                 }
             };
 
@@ -69,8 +65,8 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
 
             var passkey = new Passkey
             {
-                CredentialId = Convert.ToBase64String(credentialCreationResult.Result.CredentialId),
-                PublicKey = Convert.ToBase64String(credentialCreationResult.Result.PublicKey),
+                CredentialId = credentialCreationResult.Result.CredentialId,
+                PublicKey = credentialCreationResult.Result.PublicKey,
             };
 
             return passkey;
@@ -106,7 +102,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
         }
     }
 
-    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, string publicKey)
+    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, byte[] publicKey)
     {
         try
         {
@@ -119,21 +115,16 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
 
             var fido2 = new Fido2(fido2Configuration);
 
-            var credentialIdBytes = Convert.FromBase64String(passkey.CredentialId);
-            var authenticatorDataBytes = Convert.FromBase64String(passkey.AuthenticatorData!);
-            var clientDataJsonBytes = Convert.FromBase64String(passkey.ClientDataJson!);
-            var SignatureBytes = Convert.FromBase64String(passkey.Signature!);
-
             var response = new AuthenticatorAssertionRawResponse
             {
-                Id = credentialIdBytes,
-                RawId = credentialIdBytes,
+                Id = passkey.CredentialId,
+                RawId = passkey.CredentialId,
                 Type = PublicKeyCredentialType.PublicKey,
                 Response = new AuthenticatorAssertionRawResponse.AssertionResponse
                 {
-                    AuthenticatorData = authenticatorDataBytes,
-                    ClientDataJson = clientDataJsonBytes,
-                    Signature = SignatureBytes,
+                    AuthenticatorData = passkey.AuthenticatorData,
+                    ClientDataJson = passkey.ClientDataJson,
+                    Signature = passkey.Signature,
                 }
             };
 
@@ -143,8 +134,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
                 RpId = fido2Configuration.ServerDomain,
             };
 
-            var decodedPublicKey = Convert.FromBase64String(publicKey);
-            var assertionResult = await fido2.MakeAssertionAsync(response, assertionOptions, decodedPublicKey, 0, (_, _) => Task.FromResult(true));
+            var assertionResult = await fido2.MakeAssertionAsync(response, assertionOptions, publicKey, 0, (_, _) => Task.FromResult(true));
 
             return assertionResult.Status == "ok";
         }
