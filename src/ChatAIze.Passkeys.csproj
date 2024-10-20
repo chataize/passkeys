@@ -31,8 +31,7 @@
     <SupportedPlatform Include="browser" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference
-        Include="Microsoft.AspNetCore.Components.Web"
-        Version="8.0.10" />
+    <PackageReference Include="Fido2" Version="3.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.10" />
   </ItemGroup>
 </Project>
