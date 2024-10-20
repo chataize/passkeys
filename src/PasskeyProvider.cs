@@ -19,11 +19,12 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
         var module = await moduleTask.Value;
         var challenge = RandomNumberGenerator.GetBytes(32);
         var passkeyCreationResult = await module.InvokeAsync<PasskeyCreationResult>("createPasskey", options.Value.Domain, options.Value.AppName, userId, userName ?? userId, displayName ?? userName ?? userId, challenge);
+
         var fido2Configuration = new Fido2Configuration
         {
             ServerDomain = options.Value.Domain,
             ServerName = options.Value.AppName,
-            Origins = [.. options.Value.Origins],
+            Origins = [.. options.Value.Origins]
         };
 
         var fido2 = new Fido2(fido2Configuration);
@@ -73,10 +74,21 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
         return passkey;
     }
 
-    public async ValueTask GetPasskeyAsync()
+    public async ValueTask<Passkey?> GetPasskeyAsync()
     {
         var module = await moduleTask.Value;
-        await module.InvokeAsync<string>("getPasskey");
+        var challenge = RandomNumberGenerator.GetBytes(32);
+        var result = await module.InvokeAsync<PasskeyRetrievalResult>("getPasskey", options.Value.Domain, challenge);
+
+        var passkey = new Passkey
+        {
+            CredentialId = result.CredentialId,
+            AuthenticatorData = result.AuthenticatorData,
+            ClientDataJson = result.ClientDataJson,
+            Signature = result.Signature
+        };
+
+        return passkey;
     }
 
     public async ValueTask DisposeAsync()
