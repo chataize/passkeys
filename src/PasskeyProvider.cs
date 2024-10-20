@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 
 namespace ChatAIze.Passkeys;
@@ -26,13 +25,5 @@ public sealed class PasskeyProvider(IJSRuntime jsRuntime) : IAsyncDisposable
             var module = await moduleTask.Value;
             await module.DisposeAsync();
         }
-    }
-}
-
-public static class PasskeyProviderExtensions
-{
-    public static IServiceCollection AddPasskeyProvider(this IServiceCollection services)
-    {
-        return services.AddScoped<PasskeyProvider>();
     }
 }
