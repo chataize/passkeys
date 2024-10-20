@@ -4,7 +4,12 @@ using ChatAIze.Passkeys.Preview.Components;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
-builder.Services.AddPasskeyProvider();
+builder.Services.AddPasskeyProvider(o =>
+{
+    o.Domain = "localhost";
+    o.AppName = "Localhost";
+    o.Origins = ["https://localhost:7238"];
+});
 
 var app = builder.Build();
 
