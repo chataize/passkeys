@@ -13,7 +13,7 @@ public sealed class PasskeyProvider(IJSRuntime jsRuntime) : IAsyncDisposable
         await module.InvokeVoidAsync("createPasskey");
     }
 
-    public async ValueTask ValueTaskGetPasskeyAsync()
+    public async ValueTask GetPasskeyAsync()
     {
         var module = await moduleTask.Value;
         await module.InvokeAsync<string>("getPasskey");
