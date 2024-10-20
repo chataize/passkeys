@@ -1,7 +1,30 @@
 ﻿@page "/"
+@inject PasskeyProvider PasskeyProvider
 
-<PageTitle>Home</PageTitle>
+<DPPage Title="Passkeys">
+    <DPParagraph>
+        <div>Passkey ID: @_passkeyId</div>
+        <div>Public Key: @_publicKey</div>
+        <div>Verification Status: @_verificationStatus</div>
+    </DPParagraph>
+    <DPButton Clicked="CreatePasskeyAsync">Create Passkey</DPButton>
+    <DPButton Clicked="UsePasskeyAsync">Use Passkey</DPButton>
+</DPPage>
 
-<h1>Hello, world!</h1>
+@code {
+    private string _passkeyId = "none";
 
-Welcome to your new app.
+    private string _publicKey = "none";
+
+    private string _verificationStatus = "none";
+
+    public async Task CreatePasskeyAsync()
+    {
+        await PasskeyProvider.CreatePasskeyAsync();
+    }
+
+    public async Task UsePasskeyAsync()
+    {
+        await PasskeyProvider.GetPasskeyAsync();
+    }
+}
