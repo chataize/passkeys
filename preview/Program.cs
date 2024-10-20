@@ -1,8 +1,10 @@
+using ChatAIze.Passkeys;
 using ChatAIze.Passkeys.Preview.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+builder.Services.AddPasskeyProvider();
 
 var app = builder.Build();
 
