@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <Title>Passkeys</Title>
+    <Product>Passkeys</Product>
+    <Version>0.8.10</Version>
+    <Company>ChatAIze</Company>
+    <Authors>Marcel Kwiatkowski</Authors>
+    <Copyright>© ChatAIze 2024</Copyright>
+    <AssemblyName>ChatAIze.Passkeys</AssemblyName>
+    <RootNamespace>ChatAIze.Passkeys</RootNamespace>
+    <PackageId>ChatAIze.Passkeys</PackageId>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://www.chataize.com</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/chataize/passkeys/releases</PackageReleaseNotes>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/chataize/passkeys</RepositoryUrl>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Description>
+      A C# .NET 8.0 Blazor library enabling simple passkey authentication.
+    </Description>
+    <PackageTags>
+      .net, authentication, authorization, blazor, chataize, factor, fido, fido2, identity, library,
+      login, mfa, multi, multi-factor, passkey, passkeys, password, passwordless, passwords, razor,
+      secure, security, signin, web
+    </PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference
+        Include="Microsoft.AspNetCore.Components.Web"
+        Version="8.0.10" />
+  </ItemGroup>
+</Project>
