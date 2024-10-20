@@ -5,7 +5,7 @@ namespace ChatAIze.Passkeys;
 
 public sealed class PasskeyProvider(IJSRuntime jsRuntime) : IAsyncDisposable
 {
-    private readonly Lazy<Task<IJSObjectReference>> moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Passkeys/passkeys.js").AsTask());
+    private readonly Lazy<Task<IJSObjectReference>> moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/ChatAIze.Passkeys/passkeys.js").AsTask());
 
     public async ValueTask CreatePasskeyAsync()
     {
