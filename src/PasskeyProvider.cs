@@ -181,6 +181,18 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, string userHandle, string publicKey, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await VerifyPasskeyAsync(passkey, Encoding.UTF8.GetBytes(userHandle), Encoding.UTF8.GetBytes(publicKey), options, cancellationToken);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (moduleTask.IsValueCreated)
