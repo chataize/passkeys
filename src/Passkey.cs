@@ -8,9 +8,9 @@ public sealed record Passkey
 
     public byte[]? PublicKey { get; init; }
 
-    public string? UserHandleBase64 => UserHandle is not null ? Convert.ToBase64String(UserHandle) : null;
+    public string UserHandleBase64 => Convert.ToBase64String(UserHandle);
 
-    public string? CredentialIdBase64 => CredentialId is not null ? Convert.ToBase64String(CredentialId) : null;
+    public string CredentialIdBase64 => Convert.ToBase64String(CredentialId);
 
     public string? PublicKeyBase64 => PublicKey is not null ? Convert.ToBase64String(PublicKey) : null;
 
