@@ -10,23 +10,25 @@ using Microsoft.JSInterop;
 namespace ChatAIze.Passkeys;
 
 [method: ActivatorUtilitiesConstructor]
-public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime jsRuntime) : IAsyncDisposable
+public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSRuntime jsRuntime) : IAsyncDisposable
 {
     private readonly Lazy<Task<IJSObjectReference>> moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/ChatAIze.Passkeys/passkeys.js").AsTask());
 
-    public async ValueTask<Passkey?> CreatePasskeyAsync(byte[] userId, string userName, string? displayName = null)
+    public async ValueTask<Passkey?> CreatePasskeyAsync(byte[] userId, string userName, string? displayName = null, PasskeyOptions? options = null)
     {
         try
         {
+            options ??= globalOptions.Value;
+
             var module = await moduleTask.Value;
             var challenge = RandomNumberGenerator.GetBytes(32);
-            var passkeyCreationResult = await module.InvokeAsync<PasskeyCreationResult>("createPasskey", options.Value.Domain, options.Value.AppName, userId, userName, displayName ?? userName, challenge);
+            var passkeyCreationResult = await module.InvokeAsync<PasskeyCreationResult>("createPasskey", options.Domain, options.AppName, userId, userName, displayName ?? userName, challenge);
 
             var fido2Configuration = new Fido2Configuration
             {
-                ServerDomain = options.Value.Domain,
-                ServerName = options.Value.AppName,
-                Origins = [.. options.Value.Origins]
+                ServerDomain = options.Domain,
+                ServerName = options.AppName,
+                Origins = [.. options.Origins]
             };
 
             var fido2 = new Fido2(fido2Configuration);
@@ -77,11 +79,11 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
         }
     }
 
-    public async Task<Passkey?> CreatePasskeyAsync(string userId, string? userName = null, string? displayName = null)
+    public async Task<Passkey?> CreatePasskeyAsync(string userId, string? userName = null, string? displayName = null, PasskeyOptions? options = null)
     {
         try
         {
-            return await CreatePasskeyAsync(Encoding.UTF8.GetBytes(userId), userName ?? userId, displayName ?? userName ?? userId);
+            return await CreatePasskeyAsync(Encoding.UTF8.GetBytes(userId), userName ?? userId, displayName ?? userName ?? userId, options);
         }
         catch
         {
@@ -89,13 +91,15 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
         }
     }
 
-    public async ValueTask<Passkey?> GetPasskeyAsync()
+    public async ValueTask<Passkey?> GetPasskeyAsync(PasskeyOptions? options = null)
     {
         try
         {
+            options ??= globalOptions.Value;
+
             var module = await moduleTask.Value;
             var challenge = RandomNumberGenerator.GetBytes(32);
-            var result = await module.InvokeAsync<PasskeyRetrievalResult>("getPasskey", options.Value.Domain, challenge);
+            var result = await module.InvokeAsync<PasskeyRetrievalResult>("getPasskey", options.Domain, challenge);
 
             var passkey = new Passkey
             {
@@ -114,15 +118,17 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
         }
     }
 
-    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, byte[] publicKey)
+    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, byte[] publicKey, PasskeyOptions? options = null)
     {
         try
         {
+            options ??= globalOptions.Value;
+
             var fido2Configuration = new Fido2Configuration
             {
-                ServerDomain = options.Value.Domain,
-                ServerName = options.Value.AppName,
-                Origins = [.. options.Value.Origins]
+                ServerDomain = options.Domain,
+                ServerName = options.AppName,
+                Origins = [.. options.Origins]
             };
 
             var fido2 = new Fido2(fido2Configuration);
