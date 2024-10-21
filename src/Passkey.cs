@@ -2,7 +2,9 @@ namespace ChatAIze.Passkeys;
 
 public sealed record Passkey
 {
-    public required byte[]? CredentialId { get; init; }
+    public required byte[] UserHandle { get; init; }
+
+    public required byte[] CredentialId { get; init; }
 
     public byte[]? PublicKey { get; init; }
 

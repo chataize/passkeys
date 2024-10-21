@@ -2,6 +2,8 @@ namespace ChatAIze.Passkeys.DataTransferObjects;
 
 internal sealed record PasskeyRetrievalResult
 {
+    public required byte[] UserHandle { get; init; }
+
     public required byte[] CredentialId { get; init; }
 
     public required byte[] AuthenticatorData { get; init; }
@@ -10,4 +12,3 @@ internal sealed record PasskeyRetrievalResult
 
     public required byte[] Signature { get; init; }
 }
-

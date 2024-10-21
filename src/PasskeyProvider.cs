@@ -83,6 +83,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
 
             var passkey = new Passkey
             {
+                UserHandle = passkeyCreationResult.UserHandle,
                 CredentialId = credentialCreationResult.Result.CredentialId,
                 PublicKey = credentialCreationResult.Result.PublicKey,
             };
@@ -120,6 +121,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
 
             var passkey = new Passkey
             {
+                UserHandle = result.UserHandle,
                 CredentialId = result.CredentialId,
                 Challenge = challenge,
                 AuthenticatorData = result.AuthenticatorData,
