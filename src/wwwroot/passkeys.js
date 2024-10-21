@@ -22,7 +22,6 @@ export async function createPasskey(domain, appName, userId, userName, userDispl
     const credential = await navigator.credentials.create({ publicKey });
 
     return {
-        userHandle: new Uint8Array(credential.response.userHandle),
         credentialId: new Uint8Array(credential.rawId),
         attestation: new Uint8Array(credential.response.attestationObject),
         clientDataJSON: new Uint8Array(credential.response.clientDataJSON)

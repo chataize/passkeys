@@ -83,7 +83,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
 
             var passkey = new Passkey
             {
-                UserHandle = passkeyCreationResult.UserHandle,
+                UserHandle = userId,
                 CredentialId = credentialCreationResult.Result.CredentialId,
                 PublicKey = credentialCreationResult.Result.PublicKey,
             };
