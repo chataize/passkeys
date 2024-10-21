@@ -1,3 +1,7 @@
+export function arePasskeysSupported() {
+    return !!(window.PublicKeyCredential && typeof window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function');
+}
+
 export async function createPasskey(domain, appName, userId, userName, userDisplayName, challenge) {
     const publicKey = {
         challenge: challenge,

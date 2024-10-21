@@ -16,6 +16,19 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
+    public async ValueTask<bool> ArePasskeysSupportedAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var module = await moduleTask.Value;
+            return await module.InvokeAsync<bool>("arePasskeysSupported", cancellationToken);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public async ValueTask<Passkey?> CreatePasskeyAsync(byte[] userId, string userName, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
     {
         try
