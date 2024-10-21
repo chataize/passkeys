@@ -172,7 +172,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
                 RpId = fido2Configuration.ServerDomain,
             };
 
-            var assertionResult = await fido2.MakeAssertionAsync(response, assertionOptions, publicKey, 0, (_, _) => Task.FromResult(passkey.UserHandle == userHandle), cancellationToken: cancellationToken);
+            var assertionResult = await fido2.MakeAssertionAsync(response, assertionOptions, publicKey, 0, (args, _) => Task.FromResult(args.UserHandle == userHandle), cancellationToken: cancellationToken);
             return assertionResult.Status == "ok";
         }
         catch
