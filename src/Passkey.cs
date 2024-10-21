@@ -13,4 +13,8 @@ public sealed record Passkey
     public byte[]? Signature { get; set; }
 
     public byte[]? PublicKey { get; set; }
+
+    public string? CredentialIdBase64 => CredentialId is not null ? Convert.ToBase64String(CredentialId) : null;
+
+    public string? PublicKeyBase64 => PublicKey is not null ? Convert.ToBase64String(PublicKey) : null;
 }
