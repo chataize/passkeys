@@ -185,7 +185,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
     {
         try
         {
-            return await VerifyPasskeyAsync(passkey, Encoding.UTF8.GetBytes(userHandle), Encoding.UTF8.GetBytes(publicKey), options, cancellationToken);
+            return await VerifyPasskeyAsync(passkey, Convert.FromBase64String(userHandle), Convert.FromBase64String(publicKey), options, cancellationToken);
         }
         catch
         {
