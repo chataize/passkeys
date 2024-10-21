@@ -137,7 +137,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
-    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, byte[] publicKey, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, byte[] userHandle, byte[] publicKey, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -172,7 +172,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
                 RpId = fido2Configuration.ServerDomain,
             };
 
-            var assertionResult = await fido2.MakeAssertionAsync(response, assertionOptions, publicKey, 0, (_, _) => Task.FromResult(true), cancellationToken: cancellationToken);
+            var assertionResult = await fido2.MakeAssertionAsync(response, assertionOptions, publicKey, 0, (_, _) => Task.FromResult(passkey.UserHandle == userHandle), cancellationToken: cancellationToken);
             return assertionResult.Status == "ok";
         }
         catch

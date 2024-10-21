@@ -19,6 +19,8 @@
 
     private Passkey? _passkey;
 
+    private byte[]? _userHandle;
+
     private byte[]? _publicKey;
 
     private bool _isVerified;
@@ -31,12 +33,13 @@
     public async Task CreatePasskeyAsync()
     {
         _passkey = await PasskeyProvider.CreatePasskeyAsync("user4");
+        _userHandle = _passkey!.UserHandle;
         _publicKey = _passkey!.PublicKey;
     }
 
     public async Task UsePasskeyAsync()
     {
         _passkey = await PasskeyProvider.GetPasskeyAsync();
-        _isVerified = await PasskeyProvider.VerifyPasskeyAsync(_passkey!, _publicKey!);
+        _isVerified = await PasskeyProvider.VerifyPasskeyAsync(_passkey!, _userHandle, _publicKey!);
     }
 }
