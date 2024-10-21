@@ -6,7 +6,7 @@ export async function createPasskey(domain, appName, userId, userName, userDispl
             id: domain
         },
         user: {
-            id: new TextEncoder().encode(userId),
+            id: userId,
             name: userName,
             displayName: userDisplayName
         },

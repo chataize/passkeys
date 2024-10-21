@@ -14,13 +14,13 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
 {
     private readonly Lazy<Task<IJSObjectReference>> moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/ChatAIze.Passkeys/passkeys.js").AsTask());
 
-    public async ValueTask<Passkey?> CreatePasskeyAsync(string userId, string? userName = null, string? displayName = null)
+    public async ValueTask<Passkey?> CreatePasskeyAsync(byte[] userId, string userName, string? displayName = null)
     {
         try
         {
             var module = await moduleTask.Value;
             var challenge = RandomNumberGenerator.GetBytes(32);
-            var passkeyCreationResult = await module.InvokeAsync<PasskeyCreationResult>("createPasskey", options.Value.Domain, options.Value.AppName, userId, userName ?? userId, displayName ?? userName ?? userId, challenge);
+            var passkeyCreationResult = await module.InvokeAsync<PasskeyCreationResult>("createPasskey", options.Value.Domain, options.Value.AppName, userId, userName, displayName ?? userName, challenge);
 
             var fido2Configuration = new Fido2Configuration
             {
@@ -45,9 +45,9 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
 
             var user = new Fido2User
             {
-                Id = Encoding.UTF8.GetBytes(userId),
-                Name = userName ?? userId,
-                DisplayName = displayName ?? userName ?? userId,
+                Id = userId,
+                Name = userName,
+                DisplayName = displayName ?? userName,
             };
 
             var credentialCreateOptions = new CredentialCreateOptions
@@ -70,6 +70,18 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> options, IJSRuntime
             };
 
             return passkey;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<Passkey?> CreatePasskeyAsync(string userId, string? userName = null, string? displayName = null)
+    {
+        try
+        {
+            return await CreatePasskeyAsync(Encoding.UTF8.GetBytes(userId), userName ?? userId, displayName ?? userName ?? userId);
         }
         catch
         {
