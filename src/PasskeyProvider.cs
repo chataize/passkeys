@@ -14,11 +14,14 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
 {
     private readonly Lazy<Task<IJSObjectReference>> moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/ChatAIze.Passkeys/passkeys.js").AsTask());
 
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+
     public async ValueTask<Passkey?> CreatePasskeyAsync(byte[] userId, string userName, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
     {
         try
         {
             options ??= globalOptions.Value;
+            cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token).Token;
 
             var module = await moduleTask.Value;
             var challenge = RandomNumberGenerator.GetBytes(32);
@@ -96,6 +99,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         try
         {
             options ??= globalOptions.Value;
+            cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token).Token;
 
             var module = await moduleTask.Value;
             var challenge = RandomNumberGenerator.GetBytes(32);
@@ -123,6 +127,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         try
         {
             options ??= globalOptions.Value;
+            cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token).Token;
 
             var fido2Configuration = new Fido2Configuration
             {
@@ -165,6 +170,12 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
     {
         if (moduleTask.IsValueCreated)
         {
+            if (!_cancellationTokenSource.IsCancellationRequested && _cancellationTokenSource.Token.CanBeCanceled)
+            {
+                await _cancellationTokenSource.CancelAsync();
+                _cancellationTokenSource.Dispose();
+            }
+
             var module = await moduleTask.Value;
             await module.DisposeAsync();
         }
