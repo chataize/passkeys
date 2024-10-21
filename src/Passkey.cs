@@ -10,7 +10,7 @@ public sealed record Passkey
 
     public string? PublicKeyBase64 => PublicKey is not null ? Convert.ToBase64String(PublicKey) : null;
 
-    public byte[]? Challenge { get; init; }
+    internal byte[]? Challenge { get; init; }
 
     internal byte[]? AuthenticatorData { get; init; }
 
