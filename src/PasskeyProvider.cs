@@ -108,6 +108,19 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    public async Task<Passkey?> CreatePasskeyAsync(Guid userId, string? userName = null, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var userIdString = userId.ToString();
+            return await CreatePasskeyAsync(userIdString, userName, displayName, options, cancellationToken);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     public async ValueTask<Passkey?> GetPasskeyAsync(PasskeyOptions? options = null, CancellationToken cancellationToken = default)
     {
         try
@@ -186,6 +199,18 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         try
         {
             return await VerifyPasskeyAsync(passkey, Encoding.UTF8.GetBytes(userId), Convert.FromBase64String(publicKey), options, cancellationToken);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, Guid userId, string publicKey, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await VerifyPasskeyAsync(passkey, userId.ToString(), publicKey, options, cancellationToken);
         }
         catch
         {
