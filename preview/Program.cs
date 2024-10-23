@@ -8,7 +8,7 @@ builder.Services.AddPasskeyProvider(o =>
 {
     o.Domain = "localhost";
     o.AppName = "Localhost";
-    o.Origins = ["https://localhost:7238"];
+    o.Origins = ["https://localhost:7238", "http://localhost:5192"];
 });
 
 var app = builder.Build();
