@@ -137,7 +137,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
-    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, byte[] userHandle, byte[] publicKey, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, byte[] userId, byte[] publicKey, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -172,7 +172,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
                 RpId = fido2Configuration.ServerDomain,
             };
 
-            var assertionResult = await fido2.MakeAssertionAsync(response, assertionOptions, publicKey, 0, (args, _) => Task.FromResult(args.UserHandle == userHandle), cancellationToken: cancellationToken);
+            var assertionResult = await fido2.MakeAssertionAsync(response, assertionOptions, publicKey, 0, (args, _) => Task.FromResult(args.UserHandle == userId), cancellationToken: cancellationToken);
             return assertionResult.Status == "ok";
         }
         catch
@@ -181,11 +181,11 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
-    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, string userHandle, string publicKey, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, string userId, string publicKey, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await VerifyPasskeyAsync(passkey, Encoding.UTF8.GetBytes(userHandle), Convert.FromBase64String(publicKey), options, cancellationToken);
+            return await VerifyPasskeyAsync(passkey, Encoding.UTF8.GetBytes(userId), Convert.FromBase64String(publicKey), options, cancellationToken);
         }
         catch
         {
