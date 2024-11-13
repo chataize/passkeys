@@ -29,21 +29,13 @@
     </PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <None
-        Include="icon.png"
-        Pack="true"
-        PackagePath="\" />
-    <None
-        Include="../README.md"
-        Pack="true"
-        PackagePath="" />
+    <None Include="icon.png" Pack="true" PackagePath="\" />
+    <None Include="../README.md" Pack="true" PackagePath="" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../src/ChatAIze.Passkeys.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference
-        Include="ChatAIze.DopamineUI"
-        Version="0.8.10" />
+    <PackageReference Include="ChatAIze.DopamineUI" Version="0.8.18" />
   </ItemGroup>
 </Project>
