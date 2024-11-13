@@ -20,7 +20,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Description>
-      A C# .NET 8.0 Blazor library enabling simple passkey authentication.
+      A C# .NET 9.0 Blazor library enabling simple passkey authentication.
     </Description>
     <PackageTags>
       .net, authentication, authorization, blazor, chataize, factor, fido, fido2, identity, library,

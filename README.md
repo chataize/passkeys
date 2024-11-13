@@ -1,2 +1,2 @@
 # Passkeys
-A C# .NET 8.0 Blazor library enabling simple passkey authentication.
+A C# .NET 9.0 Blazor library enabling simple passkey authentication.
