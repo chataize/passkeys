@@ -17,8 +17,9 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/chataize/passkeys</RepositoryUrl>
     <TargetFramework>net9.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <InvariantGlobalization>true</InvariantGlobalization>
     <Description>
       Preview project for Passkeys library.
     </Description>
