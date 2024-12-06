@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Title>Passkeys</Title>
     <Product>Passkeys</Product>
-    <Version>0.2.3</Version>
+    <Version>0.2.4</Version>
     <Company>ChatAIze</Company>
     <Authors>Marcel Kwiatkowski</Authors>
     <Copyright>© ChatAIze 2024</Copyright>
