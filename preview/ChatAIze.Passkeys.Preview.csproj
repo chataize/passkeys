@@ -37,6 +37,6 @@
     <ProjectReference Include="../src/ChatAIze.Passkeys.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ChatAIze.DopamineUI" Version="0.9.10" />
+    <PackageReference Include="ChatAIze.DopamineUI" Version="0.10.0" />
   </ItemGroup>
 </Project>
