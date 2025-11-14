@@ -1,0 +1,4 @@
+﻿<Solution>
+  <Project Path="ChatAIze.Passkeys/ChatAIze.Passkeys.csproj" />
+  <Project Path="ChatAIze.Passkeys.Preview/ChatAIze.Passkeys.Preview.csproj" />
+</Solution>
