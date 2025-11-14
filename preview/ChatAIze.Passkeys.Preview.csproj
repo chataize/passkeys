@@ -37,7 +37,7 @@
     <None Include="../README.md" Pack="true" PackagePath="" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../src/ChatAIze.Passkeys.csproj" />
+    <ProjectReference Include="../ChatAIze.Passkeys/ChatAIze.Passkeys.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ChatAIze.DopamineUI" Version="0.10.3" />
