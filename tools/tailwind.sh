@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd ../preview
+cd ../ChatAIze.Passkeys.Preview
 tailwindcss -i ./wwwroot/css/app.css -o ./wwwroot/css/tailwind.css --watch
