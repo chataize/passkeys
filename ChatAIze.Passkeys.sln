@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatAIze.Passkeys", "ChatAIze.Passkeys\ChatAIze.Passkeys.csproj", "{28C63551-7C50-4BE0-A598-41F367113701}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatAIze.Passkeys.Preview", "preview\ChatAIze.Passkeys.Preview.csproj", "{74F9E070-B32A-4BC0-9C0D-E7085E15B2B8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatAIze.Passkeys.Preview", "ChatAIze.Passkeys.Preview\ChatAIze.Passkeys.Preview.csproj", "{74F9E070-B32A-4BC0-9C0D-E7085E15B2B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
