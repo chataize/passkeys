@@ -39,7 +39,13 @@
   <ItemGroup>
     <ProjectReference Include="../ChatAIze.Passkeys/ChatAIze.Passkeys.csproj" />
   </ItemGroup>
+  <PropertyGroup>
+    <UseLocalChataizeProjects>false</UseLocalChataizeProjects>
+  </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ChatAIze.DopamineUI" Version="0.10.3" />
+    <PackageReference Include="ChatAIze.DopamineUI" Version="0.10.3" Condition="'$(UseLocalChataizeProjects)' != 'true'" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalChataizeProjects)' == 'true'">
+    <ProjectReference Include="..\..\dopamine-ui\ChatAIze.DopamineUI\ChatAIze.DopamineUI.csproj" />
   </ItemGroup>
 </Project>
