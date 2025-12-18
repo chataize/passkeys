@@ -228,6 +228,30 @@ var ok = await PasskeyProvider.VerifyPasskeyAsync(
 If the browser returns an empty user handle, resolve the user by `CredentialId` and
 use that stored user handle for verification.
 
+### Prefer discoverable with fallback to security keys
+
+If you want to prefer discoverable passkeys but still allow security keys for a known user,
+use the fallback helper:
+
+```csharp
+var allowCredentials = await credentialStore.GetCredentialIdsAsync(userId);
+
+var passkey = await PasskeyProvider.GetPasskeyPreferDiscoverableAsync(
+    allowCredentials: allowCredentials);
+if (passkey is null)
+{
+    return;
+}
+
+var user = await credentialStore.FindByCredentialIdAsync(passkey.CredentialId);
+if (user is null)
+{
+    return;
+}
+
+var ok = await PasskeyProvider.VerifyPasskeyAsync(passkey, user.UserHandle, user.PublicKey);
+```
+
 ## Conditional mediation (autofill)
 
 Conditional mediation surfaces passkeys in the browser autofill UI. In Blazor Server,
@@ -326,6 +350,18 @@ ValueTask<Passkey?> GetPasskeyAsync(
 ```
 
 Use `allowCredentials` for security keys and other non-discoverable credentials.
+
+#### GetPasskeyPreferDiscoverableAsync
+
+```csharp
+ValueTask<Passkey?> GetPasskeyPreferDiscoverableAsync(
+    PasskeyOptions? options = null,
+    IReadOnlyCollection<byte[]>? allowCredentials = null,
+    CancellationToken cancellationToken = default)
+```
+
+Tries a discoverable-credential request first, then retries with `allowCredentials` for
+non-discoverable credentials if needed.
 
 #### GetPasskeyConditionalAsync
 

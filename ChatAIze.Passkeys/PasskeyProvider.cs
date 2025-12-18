@@ -284,6 +284,29 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
     }
 
     /// <summary>
+    /// Requests an assertion, preferring discoverable credentials and falling back to allowed credentials.
+    /// </summary>
+    /// <param name="options">Optional passkey options; defaults to configured options.</param>
+    /// <param name="allowCredentials">Credential IDs to use when discoverable credentials are unavailable.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The asserted passkey, or <c>null</c> on failure.</returns>
+    /// <remarks>
+    /// This first attempts a discoverable credential request (no allow list). If that fails and
+    /// <paramref name="allowCredentials"/> is provided, it retries using the allow list for
+    /// non-discoverable credentials such as security keys.
+    /// </remarks>
+    public async ValueTask<Passkey?> GetPasskeyPreferDiscoverableAsync(PasskeyOptions? options = null, IReadOnlyCollection<byte[]>? allowCredentials = null, CancellationToken cancellationToken = default)
+    {
+        var passkey = await GetPasskeyAsync(options: options, allowCredentials: null, cancellationToken: cancellationToken);
+        if (passkey is not null || allowCredentials is null || allowCredentials.Count == 0)
+        {
+            return passkey;
+        }
+
+        return await GetPasskeyAsync(options: options, allowCredentials: allowCredentials, cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
     /// Requests an assertion using conditional mediation (passkey autofill).
     /// </summary>
     /// <param name="options">Optional passkey options; defaults to configured options.</param>
@@ -395,7 +418,17 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
                 OriginalOptions = assertionOptions,
                 StoredPublicKey = publicKey,
                 StoredSignatureCounter = 0,
-                IsUserHandleOwnerOfCredentialIdCallback = (args, _) => Task.FromResult(args.UserHandle.AsSpan().SequenceEqual(userId)),
+                IsUserHandleOwnerOfCredentialIdCallback = (args, _) =>
+                {
+                    var userHandle = args.UserHandle;
+                    if (userHandle is null || userHandle.Length == 0)
+                    {
+                        // Non-discoverable credentials may omit the user handle; rely on credential lookup.
+                        return Task.FromResult(true);
+                    }
+
+                    return Task.FromResult(userHandle.AsSpan().SequenceEqual(userId));
+                },
             }, cancellationToken);
             return assertionResult is not null;
         }
