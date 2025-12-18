@@ -9,14 +9,43 @@ using Microsoft.JSInterop;
 
 namespace ChatAIze.Passkeys;
 
+/// <summary>
+/// Provides passkey creation, retrieval, and verification using WebAuthn/FIDO2.
+/// </summary>
+/// <param name="globalOptions">The configured passkey options.</param>
+/// <param name="jsRuntime">The JS runtime used for WebAuthn interop.</param>
+/// <remarks>
+/// <para>
+/// WebAuthn requires a secure context (HTTPS) or <c>localhost</c>. If calls fail, verify the
+/// origin, rpId, and that the component has rendered before invoking JS interop.
+/// </para>
+/// <para>
+/// These APIs return <c>null</c>/<c>false</c> on errors; log and handle failures in callers
+/// if you need diagnostics.
+/// </para>
+/// </remarks>
 [method: ActivatorUtilitiesConstructor]
 public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSRuntime jsRuntime) : IAsyncDisposable
 {
-    // Lazily import the JS module so it is loaded only when first needed.
+    /// <summary>
+    /// Lazily imports the JS module so it is loaded only when first needed.
+    /// </summary>
     private readonly Lazy<Task<IJSObjectReference>> moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/ChatAIze.Passkeys/passkeys.js").AsTask());
 
+    /// <summary>
+    /// Cancels in-flight operations when the provider is disposed.
+    /// </summary>
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
+    /// <summary>
+    /// Checks whether passkeys are supported in the current browser environment.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns><c>true</c> when passkeys are supported; otherwise <c>false</c>.</returns>
+    /// <remarks>
+    /// A return value of <c>false</c> can also mean the code is running outside a browser
+    /// or that JS interop is unavailable.
+    /// </remarks>
     public async ValueTask<bool> ArePasskeysSupportedAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -31,6 +60,15 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    /// <summary>
+    /// Checks whether conditional mediation (passkey autofill) is available.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns><c>true</c> when conditional mediation is available; otherwise <c>false</c>.</returns>
+    /// <remarks>
+    /// Conditional mediation should be triggered only after the UI renders and typically
+    /// requires an input with <c>autocomplete="username webauthn"</c>.
+    /// </remarks>
     public async ValueTask<bool> IsConditionalMediationAvailableAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -44,6 +82,21 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    /// <summary>
+    /// Creates a new passkey for the specified user.
+    /// </summary>
+    /// <param name="userId">The user handle bytes.</param>
+    /// <param name="userName">The user name.</param>
+    /// <param name="displayName">The user display name.</param>
+    /// <param name="options">Optional passkey options; defaults to configured options.</param>
+    /// <param name="excludeCredentials">Optional credential IDs to exclude from registration.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The created passkey, or <c>null</c> on failure.</returns>
+    /// <remarks>
+    /// The returned passkey includes the public key which you should persist for future verification.
+    /// Use <paramref name="excludeCredentials"/> to prevent duplicate registrations on the same authenticator.
+    /// Prefer a stable, opaque user handle (not an email address) for <paramref name="userId"/>.
+    /// </remarks>
     public async ValueTask<Passkey?> CreatePasskeyAsync(byte[] userId, string userName, string? displayName = null, PasskeyOptions? options = null, IReadOnlyCollection<byte[]>? excludeCredentials = null, CancellationToken cancellationToken = default)
     {
         try
@@ -136,6 +189,19 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    /// <summary>
+    /// Creates a new passkey for the specified user.
+    /// </summary>
+    /// <param name="userId">The user identifier string.</param>
+    /// <param name="userName">The user name.</param>
+    /// <param name="displayName">The user display name.</param>
+    /// <param name="options">Optional passkey options; defaults to configured options.</param>
+    /// <param name="excludeCredentials">Optional credential IDs to exclude from registration.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The created passkey, or <c>null</c> on failure.</returns>
+    /// <remarks>
+    /// This overload encodes the user identifier as UTF-8 bytes for the user handle.
+    /// </remarks>
     public async Task<Passkey?> CreatePasskeyAsync(string userId, string? userName = null, string? displayName = null, PasskeyOptions? options = null, IReadOnlyCollection<byte[]>? excludeCredentials = null, CancellationToken cancellationToken = default)
     {
         try
@@ -148,6 +214,19 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    /// <summary>
+    /// Creates a new passkey for the specified user.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    /// <param name="userName">The user name.</param>
+    /// <param name="displayName">The user display name.</param>
+    /// <param name="options">Optional passkey options; defaults to configured options.</param>
+    /// <param name="excludeCredentials">Optional credential IDs to exclude from registration.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The created passkey, or <c>null</c> on failure.</returns>
+    /// <remarks>
+    /// This overload encodes the Guid as a string for the user handle.
+    /// </remarks>
     public async Task<Passkey?> CreatePasskeyAsync(Guid userId, string? userName = null, string? displayName = null, PasskeyOptions? options = null, IReadOnlyCollection<byte[]>? excludeCredentials = null, CancellationToken cancellationToken = default)
     {
         try
@@ -161,6 +240,17 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    /// <summary>
+    /// Requests an assertion for an existing passkey.
+    /// </summary>
+    /// <param name="options">Optional passkey options; defaults to configured options.</param>
+    /// <param name="allowCredentials">Optional credential IDs to allow for assertion.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The asserted passkey, or <c>null</c> on failure.</returns>
+    /// <remarks>
+    /// For security keys or other non-discoverable credentials, supply <paramref name="allowCredentials"/>.
+    /// For discoverable passkeys, you can omit it and let the browser choose.
+    /// </remarks>
     public async ValueTask<Passkey?> GetPasskeyAsync(PasskeyOptions? options = null, IReadOnlyCollection<byte[]>? allowCredentials = null, CancellationToken cancellationToken = default)
     {
         try
@@ -193,6 +283,17 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    /// <summary>
+    /// Requests an assertion using conditional mediation (passkey autofill).
+    /// </summary>
+    /// <param name="options">Optional passkey options; defaults to configured options.</param>
+    /// <param name="allowCredentials">Optional credential IDs to allow for assertion.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The asserted passkey, or <c>null</c> when no credential is selected.</returns>
+    /// <remarks>
+    /// Call this after the page has rendered. Conditional mediation typically requires an
+    /// input element with <c>autocomplete="username webauthn"</c> to surface the autofill UI.
+    /// </remarks>
     public async ValueTask<Passkey?> GetPasskeyConditionalAsync(PasskeyOptions? options = null, IReadOnlyCollection<byte[]>? allowCredentials = null, CancellationToken cancellationToken = default)
     {
         try
@@ -230,6 +331,20 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    /// <summary>
+    /// Verifies an asserted passkey against stored user and credential data.
+    /// </summary>
+    /// <param name="passkey">The asserted passkey.</param>
+    /// <param name="userId">The expected user handle bytes.</param>
+    /// <param name="publicKey">The stored credential public key.</param>
+    /// <param name="options">Optional passkey options; defaults to configured options.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns><c>true</c> when verification succeeds; otherwise <c>false</c>.</returns>
+    /// <remarks>
+    /// This library does not persist the signature counter; it always passes <c>0</c>.
+    /// If you need clone detection, persist and supply the stored counter yourself.
+    /// For non-discoverable credentials, resolve the user by credential ID if the user handle is empty.
+    /// </remarks>
     public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, byte[] userId, byte[] publicKey, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
     {
         try
@@ -290,6 +405,18 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    /// <summary>
+    /// Verifies an asserted passkey using string inputs.
+    /// </summary>
+    /// <param name="passkey">The asserted passkey.</param>
+    /// <param name="userId">The expected user handle string.</param>
+    /// <param name="publicKey">The stored credential public key as base64.</param>
+    /// <param name="options">Optional passkey options; defaults to configured options.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns><c>true</c> when verification succeeds; otherwise <c>false</c>.</returns>
+    /// <remarks>
+    /// The <paramref name="publicKey"/> value must be standard base64 (not base64url).
+    /// </remarks>
     public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, string userId, string publicKey, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
     {
         try
@@ -302,6 +429,18 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    /// <summary>
+    /// Verifies an asserted passkey using a Guid user identifier.
+    /// </summary>
+    /// <param name="passkey">The asserted passkey.</param>
+    /// <param name="userId">The expected user identifier.</param>
+    /// <param name="publicKey">The stored credential public key as base64.</param>
+    /// <param name="options">Optional passkey options; defaults to configured options.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns><c>true</c> when verification succeeds; otherwise <c>false</c>.</returns>
+    /// <remarks>
+    /// The <paramref name="publicKey"/> value must be standard base64 (not base64url).
+    /// </remarks>
     public async ValueTask<bool> VerifyPasskeyAsync(Passkey passkey, Guid userId, string publicKey, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
     {
         try
@@ -314,6 +453,9 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    /// <summary>
+    /// Disposes the JS module and cancels any in-flight operations.
+    /// </summary>
     public async ValueTask DisposeAsync()
     {
         if (moduleTask.IsValueCreated)
@@ -330,6 +472,14 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
     }
 
     // WebAuthn expects base64url for Id fields.
+    /// <summary>
+    /// Encodes bytes using base64url for WebAuthn IDs.
+    /// </summary>
+    /// <param name="data">The bytes to encode.</param>
+    /// <returns>A base64url string.</returns>
+    /// <remarks>
+    /// WebAuthn expects base64url for credential IDs when represented as strings.
+    /// </remarks>
     private static string ToBase64Url(byte[] data)
     {
         var base64 = Convert.ToBase64String(data);

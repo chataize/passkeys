@@ -46,6 +46,10 @@
 
     private bool _conditionalInProgress;
 
+    /// <summary>
+    /// Initializes passkey capability checks after the first render.
+    /// </summary>
+    /// <param name="firstRender">Whether this is the first render pass.</param>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
@@ -65,11 +69,17 @@
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Checks whether passkeys are supported in the current browser.
+    /// </summary>
     public async Task CheckPasskeySupportAsync()
     {
         _passkeysSupported = await PasskeyProvider.ArePasskeysSupportedAsync();
     }
 
+    /// <summary>
+    /// Creates a new passkey for the demo user.
+    /// </summary>
     public async Task CreatePasskeyAsync()
     {
         _passkey = await PasskeyProvider.CreatePasskeyAsync("user4");
@@ -77,12 +87,18 @@
         _publicKey = _passkey!.PublicKeyBase64;
     }
 
+    /// <summary>
+    /// Requests a passkey assertion and verifies it.
+    /// </summary>
     public async Task UsePasskeyAsync()
     {
         _passkey = await PasskeyProvider.GetPasskeyAsync();
         _isVerified = await PasskeyProvider.VerifyPasskeyAsync(_passkey!, _userHandle!, _publicKey!);
     }
 
+    /// <summary>
+    /// Starts conditional mediation and verifies the selected passkey if available.
+    /// </summary>
     public async Task StartConditionalMediationAsync()
     {
         if (_conditionalInProgress)
