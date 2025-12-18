@@ -53,10 +53,12 @@
             return;
         }
 
+        // Conditional mediation requires the UI to be rendered before invoking it.
         _passkeysSupported = await PasskeyProvider.ArePasskeysSupportedAsync();
         _conditionalMediationAvailable = await PasskeyProvider.IsConditionalMediationAvailableAsync();
         if (_conditionalMediationAvailable)
         {
+            // Fire and forget so the UI stays responsive while the browser waits for a user gesture.
             _ = StartConditionalMediationAsync();
         }
 

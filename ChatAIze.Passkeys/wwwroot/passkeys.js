@@ -17,6 +17,7 @@ export async function isConditionalMediationAvailable() {
     }
 }
 
+// Accept base64url/base64 strings from .NET and convert them to bytes.
 function base64ToBytes(value) {
     const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
     const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
@@ -28,6 +29,7 @@ function base64ToBytes(value) {
     return bytes;
 }
 
+// Normalize different data shapes sent over JS interop into Uint8Array.
 function toUint8Array(value) {
     if (value instanceof Uint8Array) {
         return value;
@@ -47,6 +49,7 @@ function toUint8Array(value) {
     return new Uint8Array();
 }
 
+// Convert raw credential IDs into WebAuthn descriptor objects.
 function toCredentialDescriptors(credentials) {
     if (!credentials || credentials.length === 0) {
         return undefined;
@@ -81,6 +84,7 @@ export async function createPasskey(domain, appName, userId, userName, userDispl
             { type: "public-key", alg: -8 }
         ],
     };
+    // ExcludeCredentials prevents registering a duplicate credential.
     const exclude = toCredentialDescriptors(excludeCredentials);
     if (exclude) {
         publicKey.excludeCredentials = exclude;
@@ -97,12 +101,14 @@ export async function createPasskey(domain, appName, userId, userName, userDispl
 
 export async function getPasskey(domain, challenge, allowCredentials) {
     const publicKey = { challenge: challenge, rpId: domain };
+    // AllowCredentials narrows the acceptable credentials (useful for security keys).
     const allow = toCredentialDescriptors(allowCredentials);
     if (allow) {
         publicKey.allowCredentials = allow;
     }
     const credential = await navigator.credentials.get({ publicKey });
 
+    // userHandle can be null for non-discoverable credentials.
     const userHandle = credential.response.userHandle
         ? new Uint8Array(credential.response.userHandle)
         : new Uint8Array();
@@ -118,16 +124,19 @@ export async function getPasskey(domain, challenge, allowCredentials) {
 
 export async function getPasskeyConditional(domain, challenge, allowCredentials) {
     const publicKey = { challenge: challenge, rpId: domain };
+    // AllowCredentials narrows the acceptable credentials (useful for security keys).
     const allow = toCredentialDescriptors(allowCredentials);
     if (allow) {
         publicKey.allowCredentials = allow;
     }
 
+    // Conditional mediation enables passkey autofill without an explicit user gesture.
     const credential = await navigator.credentials.get({ publicKey, mediation: "conditional" });
     if (!credential) {
         return null;
     }
 
+    // userHandle can be null for non-discoverable credentials.
     const userHandle = credential.response.userHandle
         ? new Uint8Array(credential.response.userHandle)
         : new Uint8Array();
