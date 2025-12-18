@@ -18,7 +18,9 @@ export async function createPasskey(domain, appName, userId, userName, userDispl
             displayName: userDisplayName
         },
         pubKeyCredParams: [
-            { type: "public-key", alg: -7 }
+            { type: "public-key", alg: -7 },
+            { type: "public-key", alg: -257 },
+            { type: "public-key", alg: -8 }
         ],
     };
 
