@@ -4,14 +4,25 @@
 <DPPage Title="Passkeys">
     <DPParagraph>
         <div>Passkeys Supported: @_passkeysSupported</div>
+        <div>Conditional Mediation Available: @_conditionalMediationAvailable</div>
+        <div>Conditional In Progress: @_conditionalInProgress</div>
         <div>User Handle: @_passkey?.UserHandleBase64</div>
         <div>Credential ID: @_passkey?.CredentialIdBase64</div>
         <div>Public Key: @_passkey?.PublicKeyBase64</div>
         <div>Verified: @_isVerified</div>
+        <div>Conditional Credential ID: @_conditionalPasskey?.CredentialIdBase64</div>
+        <div>Conditional Verified: @_conditionalVerified</div>
+    </DPParagraph>
+    <DPParagraph>
+        <form>
+            <label>Username</label>
+            <input @bind="_username" autocomplete="username webauthn" placeholder="Username" />
+        </form>
     </DPParagraph>
     <DPButton Clicked="CheckPasskeySupportAsync">Check Passkey Support</DPButton>
     <DPButton Clicked="CreatePasskeyAsync">Create Passkey</DPButton>
     <DPButton Clicked="UsePasskeyAsync">Use Passkey</DPButton>
+    <DPButton Clicked="StartConditionalMediationAsync">Start Conditional Mediation</DPButton>
 </DPPage>
 
 @code {
@@ -19,11 +30,38 @@
 
     private Passkey? _passkey;
 
+    private Passkey? _conditionalPasskey;
+
     private string? _userHandle;
 
     private string? _publicKey;
 
+    private string? _username;
+
     private bool _isVerified;
+
+    private bool _conditionalVerified;
+
+    private bool _conditionalMediationAvailable;
+
+    private bool _conditionalInProgress;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _passkeysSupported = await PasskeyProvider.ArePasskeysSupportedAsync();
+        _conditionalMediationAvailable = await PasskeyProvider.IsConditionalMediationAvailableAsync();
+        if (_conditionalMediationAvailable)
+        {
+            _ = StartConditionalMediationAsync();
+        }
+
+        StateHasChanged();
+    }
 
     public async Task CheckPasskeySupportAsync()
     {
@@ -41,5 +79,32 @@
     {
         _passkey = await PasskeyProvider.GetPasskeyAsync();
         _isVerified = await PasskeyProvider.VerifyPasskeyAsync(_passkey!, _userHandle!, _publicKey!);
+    }
+
+    public async Task StartConditionalMediationAsync()
+    {
+        if (_conditionalInProgress)
+        {
+            return;
+        }
+
+        _conditionalInProgress = true;
+        _conditionalPasskey = null;
+        _conditionalVerified = false;
+        StateHasChanged();
+
+        try
+        {
+            _conditionalPasskey = await PasskeyProvider.GetPasskeyConditionalAsync();
+            if (_conditionalPasskey is not null && _userHandle is not null && _publicKey is not null)
+            {
+                _conditionalVerified = await PasskeyProvider.VerifyPasskeyAsync(_conditionalPasskey, _userHandle, _publicKey);
+            }
+        }
+        finally
+        {
+            _conditionalInProgress = false;
+            StateHasChanged();
+        }
     }
 }
