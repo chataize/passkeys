@@ -29,6 +29,19 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
+    public async ValueTask<bool> IsConditionalMediationAvailableAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var module = await moduleTask.Value;
+            return await module.InvokeAsync<bool>("isConditionalMediationAvailable", cancellationToken);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public async ValueTask<Passkey?> CreatePasskeyAsync(byte[] userId, string userName, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default, IReadOnlyCollection<byte[]>? excludeCredentials = null)
     {
         try
@@ -151,6 +164,40 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
             var module = await moduleTask.Value;
             var challenge = RandomNumberGenerator.GetBytes(32);
             var result = await module.InvokeAsync<PasskeyRetrievalResult>("getPasskey", cancellationToken, options.Domain, challenge, allowCredentials);
+
+            var passkey = new Passkey
+            {
+                UserHandle = result.UserHandle,
+                CredentialId = result.CredentialId,
+                Challenge = challenge,
+                AuthenticatorData = result.AuthenticatorData,
+                ClientDataJson = result.ClientDataJson,
+                Signature = result.Signature
+            };
+
+            return passkey;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async ValueTask<Passkey?> GetPasskeyConditionalAsync(PasskeyOptions? options = null, CancellationToken cancellationToken = default, IReadOnlyCollection<byte[]>? allowCredentials = null)
+    {
+        try
+        {
+            options ??= globalOptions.Value;
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token);
+            cancellationToken = linkedCts.Token;
+
+            var module = await moduleTask.Value;
+            var challenge = RandomNumberGenerator.GetBytes(32);
+            var result = await module.InvokeAsync<PasskeyRetrievalResult?>("getPasskeyConditional", cancellationToken, options.Domain, challenge, allowCredentials);
+            if (result is null)
+            {
+                return null;
+            }
 
             var passkey = new Passkey
             {

@@ -5,6 +5,18 @@ export function arePasskeysSupported() {
         typeof navigator.credentials.get === 'function');
 }
 
+export async function isConditionalMediationAvailable() {
+    if (!window.PublicKeyCredential || typeof PublicKeyCredential.isConditionalMediationAvailable !== 'function') {
+        return false;
+    }
+
+    try {
+        return await PublicKeyCredential.isConditionalMediationAvailable();
+    } catch {
+        return false;
+    }
+}
+
 function base64ToBytes(value) {
     const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
     const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
@@ -104,3 +116,27 @@ export async function getPasskey(domain, challenge, allowCredentials) {
     };
 }
 
+export async function getPasskeyConditional(domain, challenge, allowCredentials) {
+    const publicKey = { challenge: challenge, rpId: domain };
+    const allow = toCredentialDescriptors(allowCredentials);
+    if (allow) {
+        publicKey.allowCredentials = allow;
+    }
+
+    const credential = await navigator.credentials.get({ publicKey, mediation: "conditional" });
+    if (!credential) {
+        return null;
+    }
+
+    const userHandle = credential.response.userHandle
+        ? new Uint8Array(credential.response.userHandle)
+        : new Uint8Array();
+
+    return {
+        userHandle: userHandle,
+        credentialId: new Uint8Array(credential.rawId),
+        authenticatorData: new Uint8Array(credential.response.authenticatorData),
+        clientDataJSON: new Uint8Array(credential.response.clientDataJSON),
+        signature: new Uint8Array(credential.response.signature)
+    };
+}
