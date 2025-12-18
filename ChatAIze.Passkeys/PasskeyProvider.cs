@@ -44,17 +44,17 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
             {
                 ServerDomain = options.Domain,
                 ServerName = options.AppName,
-                Origins = [.. options.Origins]
+                Origins = new HashSet<string>(options.Origins)
             };
 
             var fido2 = new Fido2(fido2Configuration);
 
             var response = new AuthenticatorAttestationRawResponse
             {
-                Id = passkeyCreationResult.CredentialId,
+                Id = ToBase64Url(passkeyCreationResult.CredentialId),
                 RawId = passkeyCreationResult.CredentialId,
                 Type = PublicKeyCredentialType.PublicKey,
-                Response = new AuthenticatorAttestationRawResponse.ResponseData
+                Response = new AuthenticatorAttestationRawResponse.AttestationResponse
                 {
                     AttestationObject = passkeyCreationResult.Attestation,
                     ClientDataJson = passkeyCreationResult.ClientDataJson,
@@ -72,11 +72,20 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
             {
                 Challenge = challenge,
                 User = user,
-                Rp = new PublicKeyCredentialRpEntity(fido2Configuration.ServerDomain, fido2Configuration.ServerName, null)
+                Rp = new PublicKeyCredentialRpEntity(fido2Configuration.ServerDomain, fido2Configuration.ServerName, null),
+                PubKeyCredParams = new[]
+                {
+                    new PubKeyCredParam(COSE.Algorithm.ES256, PublicKeyCredentialType.PublicKey)
+                }
             };
 
-            var credentialCreationResult = await fido2.MakeNewCredentialAsync(response, credentialCreateOptions, (_, _) => Task.FromResult(true), cancellationToken: cancellationToken);
-            if (credentialCreationResult is null || credentialCreationResult.Result is null)
+            var credentialCreationResult = await fido2.MakeNewCredentialAsync(new MakeNewCredentialParams
+            {
+                AttestationResponse = response,
+                OriginalOptions = credentialCreateOptions,
+                IsCredentialIdUniqueToUserCallback = (_, _) => Task.FromResult(true),
+            }, cancellationToken);
+            if (credentialCreationResult is null)
             {
                 return null;
             }
@@ -84,8 +93,8 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
             var passkey = new Passkey
             {
                 UserHandle = userId,
-                CredentialId = credentialCreationResult.Result.CredentialId,
-                PublicKey = credentialCreationResult.Result.PublicKey,
+                CredentialId = credentialCreationResult.Id,
+                PublicKey = credentialCreationResult.PublicKey,
             };
 
             return passkey;
@@ -161,14 +170,19 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
             {
                 ServerDomain = options.Domain,
                 ServerName = options.AppName,
-                Origins = [.. options.Origins]
+                Origins = new HashSet<string>(options.Origins)
             };
 
             var fido2 = new Fido2(fido2Configuration);
 
+            if (passkey.AuthenticatorData is null || passkey.ClientDataJson is null || passkey.Signature is null || passkey.Challenge is null)
+            {
+                return false;
+            }
+
             var response = new AuthenticatorAssertionRawResponse
             {
-                Id = passkey.CredentialId,
+                Id = ToBase64Url(passkey.CredentialId),
                 RawId = passkey.CredentialId,
                 Type = PublicKeyCredentialType.PublicKey,
                 Response = new AuthenticatorAssertionRawResponse.AssertionResponse
@@ -176,6 +190,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
                     AuthenticatorData = passkey.AuthenticatorData,
                     ClientDataJson = passkey.ClientDataJson,
                     Signature = passkey.Signature,
+                    UserHandle = passkey.UserHandle,
                 }
             };
 
@@ -185,8 +200,15 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
                 RpId = fido2Configuration.ServerDomain,
             };
 
-            var assertionResult = await fido2.MakeAssertionAsync(response, assertionOptions, publicKey, 0, (args, _) => Task.FromResult(args.UserHandle == userId), cancellationToken: cancellationToken);
-            return assertionResult.Status == "ok";
+            var assertionResult = await fido2.MakeAssertionAsync(new MakeAssertionParams
+            {
+                AssertionResponse = response,
+                OriginalOptions = assertionOptions,
+                StoredPublicKey = publicKey,
+                StoredSignatureCounter = 0,
+                IsUserHandleOwnerOfCredentialIdCallback = (args, _) => Task.FromResult(args.UserHandle.AsSpan().SequenceEqual(userId)),
+            }, cancellationToken);
+            return assertionResult is not null;
         }
         catch
         {
@@ -231,5 +253,11 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
             var module = await moduleTask.Value;
             await module.DisposeAsync();
         }
+    }
+
+    private static string ToBase64Url(byte[] data)
+    {
+        var base64 = Convert.ToBase64String(data);
+        return base64.Replace("+", "-").Replace("/", "_").TrimEnd('=');
     }
 }
