@@ -34,7 +34,8 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         try
         {
             options ??= globalOptions.Value;
-            cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token).Token;
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token);
+            cancellationToken = linkedCts.Token;
 
             var module = await moduleTask.Value;
             var challenge = RandomNumberGenerator.GetBytes(32);
@@ -135,7 +136,8 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         try
         {
             options ??= globalOptions.Value;
-            cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token).Token;
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token);
+            cancellationToken = linkedCts.Token;
 
             var module = await moduleTask.Value;
             var challenge = RandomNumberGenerator.GetBytes(32);
@@ -164,7 +166,8 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         try
         {
             options ??= globalOptions.Value;
-            cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token).Token;
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource.Token);
+            cancellationToken = linkedCts.Token;
 
             var fido2Configuration = new Fido2Configuration
             {
