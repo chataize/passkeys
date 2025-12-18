@@ -42,7 +42,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
-    public async ValueTask<Passkey?> CreatePasskeyAsync(byte[] userId, string userName, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default, IReadOnlyCollection<byte[]>? excludeCredentials = null)
+    public async ValueTask<Passkey?> CreatePasskeyAsync(byte[] userId, string userName, string? displayName = null, PasskeyOptions? options = null, IReadOnlyCollection<byte[]>? excludeCredentials = null, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -128,11 +128,11 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
-    public async Task<Passkey?> CreatePasskeyAsync(string userId, string? userName = null, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default, IReadOnlyCollection<byte[]>? excludeCredentials = null)
+    public async Task<Passkey?> CreatePasskeyAsync(string userId, string? userName = null, string? displayName = null, PasskeyOptions? options = null, IReadOnlyCollection<byte[]>? excludeCredentials = null, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await CreatePasskeyAsync(Encoding.UTF8.GetBytes(userId), userName ?? userId, displayName ?? userName ?? userId, options, cancellationToken, excludeCredentials);
+            return await CreatePasskeyAsync(Encoding.UTF8.GetBytes(userId), userName ?? userId, displayName ?? userName ?? userId, options: options, excludeCredentials: excludeCredentials, cancellationToken: cancellationToken);
         }
         catch
         {
@@ -140,12 +140,12 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
-    public async Task<Passkey?> CreatePasskeyAsync(Guid userId, string? userName = null, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default, IReadOnlyCollection<byte[]>? excludeCredentials = null)
+    public async Task<Passkey?> CreatePasskeyAsync(Guid userId, string? userName = null, string? displayName = null, PasskeyOptions? options = null, IReadOnlyCollection<byte[]>? excludeCredentials = null, CancellationToken cancellationToken = default)
     {
         try
         {
             var userIdString = userId.ToString();
-            return await CreatePasskeyAsync(userIdString, userName, displayName, options, cancellationToken, excludeCredentials);
+            return await CreatePasskeyAsync(userIdString, userName, displayName, options: options, excludeCredentials: excludeCredentials, cancellationToken: cancellationToken);
         }
         catch
         {
@@ -153,7 +153,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
-    public async ValueTask<Passkey?> GetPasskeyAsync(PasskeyOptions? options = null, CancellationToken cancellationToken = default, IReadOnlyCollection<byte[]>? allowCredentials = null)
+    public async ValueTask<Passkey?> GetPasskeyAsync(PasskeyOptions? options = null, IReadOnlyCollection<byte[]>? allowCredentials = null, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -183,7 +183,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
-    public async ValueTask<Passkey?> GetPasskeyConditionalAsync(PasskeyOptions? options = null, CancellationToken cancellationToken = default, IReadOnlyCollection<byte[]>? allowCredentials = null)
+    public async ValueTask<Passkey?> GetPasskeyConditionalAsync(PasskeyOptions? options = null, IReadOnlyCollection<byte[]>? allowCredentials = null, CancellationToken cancellationToken = default)
     {
         try
         {
