@@ -76,7 +76,9 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
                 Rp = new PublicKeyCredentialRpEntity(fido2Configuration.ServerDomain, fido2Configuration.ServerName, null),
                 PubKeyCredParams = new[]
                 {
-                    new PubKeyCredParam(COSE.Algorithm.ES256, PublicKeyCredentialType.PublicKey)
+                    new PubKeyCredParam(COSE.Algorithm.ES256, PublicKeyCredentialType.PublicKey),
+                    new PubKeyCredParam(COSE.Algorithm.RS256, PublicKeyCredentialType.PublicKey),
+                    new PubKeyCredParam(COSE.Algorithm.EdDSA, PublicKeyCredentialType.PublicKey)
                 }
             };
 
