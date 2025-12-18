@@ -29,7 +29,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
-    public async ValueTask<Passkey?> CreatePasskeyAsync(byte[] userId, string userName, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
+    public async ValueTask<Passkey?> CreatePasskeyAsync(byte[] userId, string userName, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default, IReadOnlyCollection<byte[]>? excludeCredentials = null)
     {
         try
         {
@@ -39,7 +39,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
 
             var module = await moduleTask.Value;
             var challenge = RandomNumberGenerator.GetBytes(32);
-            var passkeyCreationResult = await module.InvokeAsync<PasskeyCreationResult>("createPasskey", cancellationToken, options.Domain, options.AppName, userId, userName, displayName ?? userName, challenge);
+            var passkeyCreationResult = await module.InvokeAsync<PasskeyCreationResult>("createPasskey", cancellationToken, options.Domain, options.AppName, userId, userName, displayName ?? userName, challenge, excludeCredentials);
 
             var fido2Configuration = new Fido2Configuration
             {
@@ -81,6 +81,13 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
                     new PubKeyCredParam(COSE.Algorithm.EdDSA, PublicKeyCredentialType.PublicKey)
                 }
             };
+            if (excludeCredentials is { Count: > 0 })
+            {
+                credentialCreateOptions.ExcludeCredentials = excludeCredentials
+                    .Where(id => id is { Length: > 0 })
+                    .Select(id => new PublicKeyCredentialDescriptor(id))
+                    .ToArray();
+            }
 
             var credentialCreationResult = await fido2.MakeNewCredentialAsync(new MakeNewCredentialParams
             {
@@ -108,11 +115,11 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
-    public async Task<Passkey?> CreatePasskeyAsync(string userId, string? userName = null, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
+    public async Task<Passkey?> CreatePasskeyAsync(string userId, string? userName = null, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default, IReadOnlyCollection<byte[]>? excludeCredentials = null)
     {
         try
         {
-            return await CreatePasskeyAsync(Encoding.UTF8.GetBytes(userId), userName ?? userId, displayName ?? userName ?? userId, options, cancellationToken);
+            return await CreatePasskeyAsync(Encoding.UTF8.GetBytes(userId), userName ?? userId, displayName ?? userName ?? userId, options, cancellationToken, excludeCredentials);
         }
         catch
         {
@@ -120,12 +127,12 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
-    public async Task<Passkey?> CreatePasskeyAsync(Guid userId, string? userName = null, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default)
+    public async Task<Passkey?> CreatePasskeyAsync(Guid userId, string? userName = null, string? displayName = null, PasskeyOptions? options = null, CancellationToken cancellationToken = default, IReadOnlyCollection<byte[]>? excludeCredentials = null)
     {
         try
         {
             var userIdString = userId.ToString();
-            return await CreatePasskeyAsync(userIdString, userName, displayName, options, cancellationToken);
+            return await CreatePasskeyAsync(userIdString, userName, displayName, options, cancellationToken, excludeCredentials);
         }
         catch
         {
@@ -133,7 +140,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
         }
     }
 
-    public async ValueTask<Passkey?> GetPasskeyAsync(PasskeyOptions? options = null, CancellationToken cancellationToken = default)
+    public async ValueTask<Passkey?> GetPasskeyAsync(PasskeyOptions? options = null, CancellationToken cancellationToken = default, IReadOnlyCollection<byte[]>? allowCredentials = null)
     {
         try
         {
@@ -143,7 +150,7 @@ public sealed class PasskeyProvider(IOptions<PasskeyOptions> globalOptions, IJSR
 
             var module = await moduleTask.Value;
             var challenge = RandomNumberGenerator.GetBytes(32);
-            var result = await module.InvokeAsync<PasskeyRetrievalResult>("getPasskey", cancellationToken, options.Domain, challenge);
+            var result = await module.InvokeAsync<PasskeyRetrievalResult>("getPasskey", cancellationToken, options.Domain, challenge, allowCredentials);
 
             var passkey = new Passkey
             {
