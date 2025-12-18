@@ -37,8 +37,12 @@ export async function getPasskey(domain, challenge) {
     const publicKey = { challenge: challenge, rpId: domain };
     const credential = await navigator.credentials.get({ publicKey });
 
+    const userHandle = credential.response.userHandle
+        ? new Uint8Array(credential.response.userHandle)
+        : new Uint8Array();
+
     return {
-        userHandle: new Uint8Array(credential.response.userHandle),
+        userHandle: userHandle,
         credentialId: new Uint8Array(credential.rawId),
         authenticatorData: new Uint8Array(credential.response.authenticatorData),
         clientDataJSON: new Uint8Array(credential.response.clientDataJSON),
