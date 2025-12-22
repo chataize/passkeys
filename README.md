@@ -20,6 +20,7 @@ FIDO2 verification so you can focus on storage and your sign-in flow.
 - [Security considerations](#security-considerations)
 - [Troubleshooting](#troubleshooting)
 - [Preview project](#preview-project)
+- [Links](#links)
 - [License](#license)
 
 ## Features
@@ -449,6 +450,11 @@ The repository includes a preview app in `ChatAIze.Passkeys.Preview` that demons
 - Conditional mediation
 
 Run it locally and update `PasskeyOptions` to match your local URLs.
+
+## Links
+- GitHub: https://github.com/chataize/passkeys
+- Chataize organization: https://github.com/chataize
+- Website: https://www.chataize.com
 
 ## License
 
